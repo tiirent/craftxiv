@@ -1,6 +1,5 @@
 package tv.tn.craftxiv;
 
-
 //URL Connections
 import java.net.URL;
 import java.net.URLConnection;
@@ -29,6 +28,7 @@ import org.apache.commons.lang.StringEscapeUtils; //Unicode Support
 public class XIVDBPull {
     private static final int limitAPI = 10;
 
+    //Function uses the xivdb main hub to pull data to save to app/src/main/res/data folder as a .json
     private static void queryCollection(String mode){
         try{
             File genericFile = new File("app/src/main/res/data/" + mode + ".json");
@@ -47,6 +47,7 @@ public class XIVDBPull {
         }
     }
 
+    //Function pulls details according to the data subsection of each item/shop/recipe
     private static void queryDetails(String mode, Object ob){
         try{
             JSONObject rec = (JSONObject) ob;
@@ -68,11 +69,6 @@ public class XIVDBPull {
         }
     }
 
-
-
-
-
-
     public static void main(String[] args) {
 
         JSONParser parser = new JSONParser();
@@ -81,10 +77,8 @@ public class XIVDBPull {
             //Recipe File
             queryCollection("recipe");
 
-
             //Item File
             queryCollection("item");
-
 
             //Shop File
             queryCollection("shop");
@@ -95,78 +89,76 @@ public class XIVDBPull {
             JSONArray recipeJSON = null;
             try {
                 recipeJSON = (JSONArray) parser.parse(new FileReader("app/src/main/res/data/recipe.json"));
+                //Parse through recipe details
+                for (Object o: recipeJSON){
+
+                    if(counter >= limitAPI){
+                        try {
+                            TimeUnit.SECONDS.sleep(1);
+                            queryDetails("recipe", o);
+                            counter = 1;
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    else{
+                        JSONObject temp = (JSONObject) o;
+                        queryDetails("recipe", o);
+                        counter++;
+                    }
+                }
             } catch (ParseException e) {
                 e.printStackTrace();
             }
-            //Parse through recipe details
-            for (Object o: recipeJSON){
-
-                if(counter >= limitAPI){
-                    try {
-                        TimeUnit.SECONDS.sleep(1);
-                        queryDetails("recipe", o);
-                        counter = 1;
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-                else{
-                    JSONObject temp = (JSONObject) o;
-                    String x = String.valueOf(temp.get("id"));
-                    queryDetails("recipe", o);
-                    counter++;
-                }
-            }
-
-
 
             //Parse through items
             JSONArray itemJSON = null;
             try {
                 itemJSON = (JSONArray) parser.parse(new FileReader("app/src/main/res/data/item.json"));
+                //Parse through item details
+                for (Object o: itemJSON){
+
+                    if(counter >= limitAPI){
+                        try {
+                            TimeUnit.SECONDS.sleep(1);
+                            queryDetails("item", o);
+                            counter = 1;
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                    else{
+                        queryDetails("item", o);
+                        counter++;
+                    }
+                }
             } catch (ParseException e) {
                 e.printStackTrace();
-            }
-            for (Object o: itemJSON){
-
-                if(counter >= limitAPI){
-                    try {
-                        TimeUnit.SECONDS.sleep(1);
-                        queryDetails("item", o);
-                        counter = 1;
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-
-                }
-                else{
-                    queryDetails("item", o);
-                    counter++;
-                }
             }
 
             //Parse through shops
             JSONArray shopJSON = null;
             try {
                 shopJSON = (JSONArray) parser.parse(new FileReader("app/src/main/res/data/shop.json"));
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-            for (Object o: shopJSON){
-
-                if(counter >= limitAPI){
-                    try {
-                        TimeUnit.SECONDS.sleep(1);
+                //Parse through shop details
+                for (Object o: shopJSON){
+                    if(counter >= limitAPI){
+                        try {
+                            TimeUnit.SECONDS.sleep(1);
+                            queryDetails("shop", o);
+                            counter = 1;
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    else{
                         queryDetails("shop", o);
-                        counter = 1;
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        counter++;
                     }
                 }
-                else{
-                    queryDetails("shop", o);
-                    counter++;
-                }
+            } catch (ParseException e) {
+                e.printStackTrace();
             }
 
         } catch (IOException e) {
